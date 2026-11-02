@@ -1,0 +1,114 @@
+import numpy as np
+# Imports NumPy for mathematical operations.
+
+def membership(value, limit):
+# Defines a function to calculate fuzzy membership values.
+
+    negative = max(0, min(1, -value / limit))
+    # Calculates how much the value belongs to the negative category.
+
+    zero = max(0, 1 - abs(value) / limit)
+    # Calculates how much the value belongs to the zero category.
+
+    positive = max(0, min(1, value / limit))
+    # Calculates how much the value belongs to the positive category.
+
+    return [negative, zero, positive]
+    # Returns all three membership values.
+
+
+def fuzzy_controller(error, velocity):
+# Defines the fuzzy controller using error and velocity as inputs.
+
+    e = membership(error, 90)
+    # Calculates fuzzy membership values for the position error.
+
+    v = membership(velocity, 30)
+    # Calculates fuzzy membership values for the arm's velocity.
+
+    rules = [
+        [-80, -60, -30],
+        [30, 0, -30],
+        [30, 60, 80]
+    ]
+    # Defines the fuzzy rule table containing motor control values.
+
+    numerator = 0
+    # Stores the weighted sum of the rule outputs.
+
+    denominator = 0
+    # Stores the total strength of the activated rules.
+
+    for i in range(3):
+    # Goes through the three error categories.
+
+        for j in range(3):
+        # Goes through the three velocity categories.
+
+            strength = min(e[i], v[j])
+            # Finds the activation strength of each rule.
+
+            numerator += strength * rules[i][j]
+            # Adds the weighted motor command.
+
+            denominator += strength
+            # Adds the rule activation strength.
+
+    if denominator == 0:
+    # Checks whether any rule has been activated.
+
+        return 0
+        # Returns zero if no rule is activated.
+
+    return numerator / denominator
+    # Calculates and returns the final motor command.
+
+
+current_angle = 0
+# Sets the initial angle of the robotic arm to 0 degrees.
+
+desired_angle = 90
+# Sets the target angle to 90 degrees.
+
+velocity = 0
+# Initially, the robotic arm is not moving.
+
+for t in range(100):
+# Repeats the control process 100 times.
+
+    error = desired_angle - current_angle
+    # Calculates the difference between target and current angles.
+
+    motor_command = fuzzy_controller(error, velocity)
+    # Calls the fuzzy controller to calculate motor movement.
+
+    acceleration = motor_command * 0.02 - velocity * 0.1
+    # Calculates acceleration using motor command and velocity.
+
+    velocity += acceleration
+    # Updates the velocity of the robotic arm.
+
+    current_angle += velocity * 0.1
+    # Updates the current angle based on velocity.
+
+    current_angle = np.clip(current_angle, 0, 180)
+    # Keeps the arm angle between 0 and 180 degrees.
+
+
+print("Desired Angle:", desired_angle)
+# Displays the target angle.
+
+print("Final Robotic Arm Angle:", round(current_angle, 2))
+# Displays the final angle up to two decimal places.
+
+print("Final Error:", round(desired_angle - current_angle, 2))
+# Displays the remaining difference between target and final angle.
+
+
+
+This program uses fuzzy logic to control a simulated robotic arm. Initially, the arm is at 0 degrees, and the desired angle is set to 90 degrees. The program calculates the difference between the current angle and desired angle, which is called the error. It also considers the velocity of the arm. The membership function classifies the error and velocity into three fuzzy values: negative, zero, and positive. After that, the fuzzy controller applies a set of rules to decide how much the motor should move. It calculates the motor command using these rules and updates the arm's velocity and angle. This process is repeated 100 times. Finally, the program displays the desired angle, final angle, and remaining error.
+
+The aim is to reduce the error and bring the robotic arm closer to 90 degrees.
+The aim of this program is to control a simulated robotic arm using fuzzy logic. Fuzzy logic helps a system make decisions using approximate values instead of only true or false conditions. In this program, we set a desired angle of 90 degrees. The controller checks the difference between the current angle and desired angle and also considers the arm's velocity. Based on these values, fuzzy rules decide the motor movement. The simulation repeats this process 100 times to move the arm towards the desired angle. Finally, it displays the final angle and error.
+
+After executing the program, we get the desired angle, final robotic arm angle, and final error. The desired angle is 90 degrees, which is our target. The final angle tells us how far the arm has moved after 100 iterations. The final error tells us how much difference remains between the target and actual position. If the error is small, it means the fuzzy controller has moved the robotic arm close to the desired position
