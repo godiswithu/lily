@@ -1,0 +1,290 @@
+import pandas as pd
+# Imports Pandas to read and process the CSV dataset.
+
+import numpy as np
+# Imports NumPy for numerical operations.
+
+import random
+# Imports random to generate and modify Genetic Algorithm solutions.
+
+import matplotlib.pyplot as plt
+# Imports Matplotlib to display the accuracy graph.
+
+from sklearn.model_selection import train_test_split, cross_val_score
+# Imports functions to split the dataset and evaluate the model.
+
+from sklearn.ensemble import RandomForestClassifier
+# Imports the Random Forest classification algorithm.
+
+from sklearn.pipeline import Pipeline
+# Imports Pipeline to combine preprocessing and model training.
+
+from sklearn.compose import ColumnTransformer
+# Imports ColumnTransformer to process numerical and categorical columns.
+
+from sklearn.preprocessing import OneHotEncoder
+# Imports OneHotEncoder to convert categorical data into numerical form.
+
+from sklearn.impute import SimpleImputer
+# Imports SimpleImputer to handle missing values.
+
+from sklearn.preprocessing import StandardScaler
+# Imports StandardScaler to standardize numerical features.
+
+from sklearn.metrics import accuracy_score
+# Imports accuracy_score to calculate final prediction accuracy.
+
+
+# Load the dataset
+
+data = pd.read_csv("Iris.csv")
+# Loads the CSV dataset from your computer or pendrive.
+
+TARGET_COLUMN = "Species"
+# Specifies the target column that we want to predict.
+# Replace target with your actual dataset's target column name.
+
+X = data.drop(columns=[TARGET_COLUMN])
+# Stores all input features by removing the target column.
+
+y = data[TARGET_COLUMN]
+# Stores the target column separately.
+
+
+# Identify numerical and categorical columns
+
+numerical_columns = X.select_dtypes(include=np.number).columns.tolist()
+# Identifies columns containing numerical values.
+
+categorical_columns = X.select_dtypes(exclude=np.number).columns.tolist()
+# Identifies columns containing text or categorical values.
+
+
+# Split the dataset
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+# Splits the dataset into 80% training data and 20% testing data.
+# Stratify maintains the class distribution in both sets.
+
+
+# Create preprocessing steps
+
+numeric_transformer = Pipeline([
+    ("imputer", SimpleImputer(strategy="median")),
+    ("scaler", StandardScaler())
+])
+# Replaces missing numerical values with the median.
+# Standardizes numerical features.
+
+categorical_transformer = Pipeline([
+    ("imputer", SimpleImputer(strategy="most_frequent")),
+    ("encoder", OneHotEncoder(handle_unknown="ignore"))
+])
+# Replaces missing categorical values with the most frequent value.
+# Converts categorical values into numerical columns.
+
+
+preprocessor = ColumnTransformer([
+    ("num", numeric_transformer, numerical_columns),
+    ("cat", categorical_transformer, categorical_columns)
+])
+# Combines numerical and categorical preprocessing.
+
+
+# Define the fitness function
+
+def fitness(individual):
+    # Defines a function to evaluate the quality of a solution.
+
+    n_estimators, max_depth = individual
+    # Extracts the two hyperparameters from an individual.
+
+    model = Pipeline([
+        ("preprocessing", preprocessor),
+        ("classifier", RandomForestClassifier(
+            n_estimators=n_estimators,
+            max_depth=max_depth,
+            random_state=42
+        ))
+    ])
+    # Creates a Random Forest model with the selected parameters.
+
+    scores = cross_val_score(
+        model, X_train, y_train, cv=3, scoring="accuracy"
+    )
+    # Evaluates the model using 3-fold cross-validation.
+
+    return scores.mean()
+    # Returns the average accuracy as the fitness value.
+
+
+# Initialize Genetic Algorithm
+
+population_size = 8
+# Defines the number of solutions in each generation.
+
+generations = 5
+# Defines the number of generations.
+
+population = [
+    [random.randint(50, 200), random.randint(2, 20)]
+    for _ in range(population_size)
+]
+# Creates an initial population with random hyperparameter values.
+
+
+best_fitness_history = []
+# Creates a list to store the best accuracy of each generation.
+
+
+# Start Genetic Algorithm
+
+for generation in range(generations):
+    # Repeats the optimization process for each generation.
+
+    scores = [fitness(individual) for individual in population]
+    # Calculates the fitness of every individual.
+
+    best_index = np.argmax(scores)
+    # Finds the index of the individual with the highest accuracy.
+
+    best_individual = population[best_index]
+    # Stores the best individual of the current generation.
+
+    best_score = scores[best_index]
+    # Stores the highest fitness value.
+
+    best_fitness_history.append(best_score)
+    # Saves the best accuracy for plotting.
+
+    print("Generation:", generation + 1)
+    # Displays the current generation number.
+
+    print("Best Parameters:", best_individual)
+    # Displays the best hyperparameters.
+
+    print("Best Accuracy:", best_score)
+    # Displays the highest accuracy in this generation.
+
+
+    # Selection
+
+    new_population = [best_individual.copy()]
+    # Keeps the best solution using elitism.
+
+    while len(new_population) < population_size:
+        # Continues until the new population is complete.
+
+        parents = random.sample(population, 3)
+        # Randomly selects three individuals for tournament selection.
+
+        parent1 = max(parents, key=fitness)
+        # Selects the first parent with the highest fitness.
+
+        parents = random.sample(population, 3)
+        # Selects another group of three individuals.
+
+        parent2 = max(parents, key=fitness)
+        # Selects the second parent with the highest fitness.
+
+
+        # Crossover
+
+        child = [parent1[0], parent2[1]]
+        # Combines parameters from both parents to create a child.
+
+
+        # Mutation
+
+        if random.random() < 0.2:
+            # Applies mutation with a probability of 20%.
+
+            child[0] = random.randint(50, 200)
+            # Randomly changes the number of decision trees.
+
+        if random.random() < 0.2:
+            # Checks whether the second parameter should mutate.
+
+            child[1] = random.randint(2, 20)
+            # Randomly changes the maximum tree depth.
+
+
+        new_population.append(child)
+        # Adds the new child to the next generation.
+
+    population = new_population
+    # Replaces the old population with the new population.
+
+
+# Find the best final solution
+
+final_scores = [fitness(individual) for individual in population]
+# Calculates the fitness of all individuals in the final generation.
+
+best_index = np.argmax(final_scores)
+# Finds the index of the best final solution.
+
+best_parameters = population[best_index]
+# Stores the best hyperparameter values.
+
+print("\nBest Parameters:", best_parameters)
+# Displays the optimized parameters.
+
+print("Best Cross-Validation Accuracy:", final_scores[best_index])
+# Displays the best cross-validation accuracy.
+
+
+# Train the final model
+
+final_model = Pipeline([
+    ("preprocessing", preprocessor),
+    ("classifier", RandomForestClassifier(
+        n_estimators=best_parameters[0],
+        max_depth=best_parameters[1],
+        random_state=42
+    ))
+])
+# Creates the final Random Forest model using optimized parameters.
+
+final_model.fit(X_train, y_train)
+# Trains the final model using the training dataset.
+
+predictions = final_model.predict(X_test)
+# Predicts the target values for the testing dataset.
+
+accuracy = accuracy_score(y_test, predictions)
+# Calculates the final testing accuracy.
+
+print("Final Test Accuracy:", accuracy)
+# Displays the final model accuracy.
+
+
+# Plot Genetic Algorithm performance
+
+plt.plot(range(1, generations + 1), best_fitness_history, marker="o")
+# Plots the best fitness value for every generation.
+
+plt.xlabel("Generation")
+# Labels the X-axis.
+
+plt.ylabel("Best Accuracy")
+# Labels the Y-axis.
+
+plt.title("Genetic Algorithm Optimization")
+# Adds a title to the graph.
+
+plt.grid()
+# Displays grid lines.
+
+plt.show()
+# Displays the optimization graph.
+
+
+
+
+
+The aim of my practical is to optimize the parameters of a Machine Learning model using a Genetic Algorithm. In this practical, I have used the Iris dataset, which contains information about three different types of flowers. I have used Random Forest as my Machine Learning algorithm. It uses multiple decision trees to make predictions. To improve the model, I have used a Genetic Algorithm, which is inspired by natural evolution. It works using population, fitness, selection, crossover and mutation. Finally, the algorithm finds suitable hyperparameters, trains the model and calculates its final accuracy.
+
+The aim of this program is to optimize the parameters of a Machine Learning model using a Genetic Algorithm. For this, I have used the Iris dataset, which contains information about three types of flowers based on four features: sepal length, sepal width, petal length, and petal width. First, I loaded the dataset and separated the input features (X) and target column (y). Then I divided the data into 80% training data and 20% testing data. I used the Random Forest Classifier, which makes predictions using multiple decision trees. It has two important parameters: n_estimators, which decides the number of trees, and max_depth, which decides how deep the trees can grow. Instead of selecting these values manually, I used a Genetic Algorithm to find suitable values. The algorithm starts with a population of random parameter combinations and checks their accuracy using a fitness function. It then selects the better combinations, combines them through crossover, and introduces small random changes through mutation. This process is repeated for five generations to find a good parameter combination. Finally, the best parameters are used to train the Random Forest model, and its accuracy is tested using the testing data. In simple words, the Genetic Algorithm helps us find suitable model parameters automatically so that the model can make better predictions.
