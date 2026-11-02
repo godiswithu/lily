@@ -1,0 +1,137 @@
+import numpy as np
+# Imports NumPy for mathematical and matrix operations.
+
+# Define two fuzzy sets
+A = np.array([0.2, 0.5, 0.8, 1.0])
+# Creates the first fuzzy set with four membership values.
+
+B = np.array([0.4, 0.6, 0.3, 0.7])
+# Creates the second fuzzy set with four membership values.
+
+
+# Mathematical operations on fuzzy sets
+
+union = np.maximum(A, B)
+# Union selects the maximum membership value from both sets.
+
+intersection = np.minimum(A, B)
+# Intersection selects the minimum membership value from both sets.
+
+complement = 1 - A
+# Complement subtracts each membership value of A from 1.
+
+difference = np.minimum(A, 1 - B)
+# Difference calculates the minimum between A and complement of B.
+
+
+# Display fuzzy set operations
+
+print("Fuzzy Set A:", A)
+# Displays the first fuzzy set.
+
+print("Fuzzy Set B:", B)
+# Displays the second fuzzy set.
+
+print("Union:", union)
+# Displays the union of A and B.
+
+print("Intersection:", intersection)
+# Displays the intersection of A and B.
+
+print("Complement of A:", complement)
+# Displays the complement of A.
+
+print("Difference A-B:", difference)
+# Displays the difference between A and B.
+
+
+# Cartesian product of two fuzzy sets
+
+R = np.minimum.outer(A, B)
+# Creates a fuzzy relation using the minimum of every pair of values.
+
+print("\nCartesian Product Relation R:")
+# Displays the heading for relation R.
+
+print(R)
+# Displays the first fuzzy relation.
+
+
+# Define two more fuzzy sets
+
+C = np.array([0.3, 0.7, 0.9])
+# Creates the third fuzzy set.
+
+D = np.array([0.5, 0.8])
+# Creates the fourth fuzzy set.
+
+S = np.minimum.outer(C, D)
+# Creates the second fuzzy relation using Cartesian product.
+
+print("\nCartesian Product Relation S:")
+# Displays the heading for relation S.
+
+print(S)
+# Displays the second fuzzy relation.
+
+
+# Max-Min Composition
+
+composition = np.zeros((len(A), len(D)))
+# Creates an empty matrix to store the composition result.
+
+for i in range(len(A)):
+# Goes through every row of the first relation.
+
+    for j in range(len(D)):
+    # Goes through every column of the second relation.
+
+        values = []
+        # Creates an empty list to store minimum values.
+
+        for k in range(len(C)):
+        # Goes through the common elements of both relations.
+
+            values.append(min(R[i][k], S[k][j]))
+            # Calculates the minimum value for each pair.
+
+        composition[i][j] = max(values)
+        # Selects the maximum among the calculated minimum values.
+
+print("\nMax-Min Composition:")
+# Displays the heading for the final result.
+
+print(composition)
+# Displays the final max-min composition matrix.
+
+
+This program performs mathematical operations on fuzzy sets using Python. First, I created two fuzzy sets A and B containing membership values between 0 and 1. Then I performed four operations: union, intersection, complement, and difference. Union takes the maximum membership value, intersection takes the minimum, complement subtracts the membership value from 1, and difference calculates the minimum between A and the complement of B. After that, I created fuzzy relations using the Cartesian product of two fuzzy sets. The Cartesian product uses the minimum operation to generate a relation matrix. I created two relations, R and S. Finally, I performed max-min composition by taking the minimum of corresponding elements from the two relations and then selecting the maximum value. The final matrix represents the max-min composition of the two fuzzy relations.
+
+Explanation of the output:
+•	Union: Displays the maximum values from A and B.
+•	Intersection: Displays the minimum values from A and B.
+•	Complement: Displays 1 minus each value of A.
+•	Difference: Displays the difference between the two fuzzy sets.
+•	Cartesian product R and S: Displays the relation matrices created using the minimum operation.
+•	Max-Min Composition: Displays the final matrix obtained by calculating minimum values first and maximum values afterward.
+"The aim of this program is to perform mathematical operations on fuzzy sets and fuzzy relations. First, I created two fuzzy sets containing membership values between 0 and 1. I performed union, intersection, complement, and difference operations on them. Then I created fuzzy relations using the Cartesian product, where the minimum value is selected for each pair of elements. After creating two relation matrices, I performed max-min composition. In this operation, we first calculate the minimum values and then select the maximum value. Finally, the program displays all the operations and the resulting composition matrix."
+
+1. What is a fuzzy set?
+A fuzzy set is a set in which elements have membership values between 0 and 1.
+2. What is a membership value?
+It represents how strongly an element belongs to a fuzzy set.
+3. What is fuzzy union?
+It selects the maximum membership value from two fuzzy sets.
+4. What is fuzzy intersection?
+It selects the minimum membership value from two fuzzy sets.
+5. What is the complement of a fuzzy set?
+It is calculated by subtracting each membership value from 1.
+6. What is a Cartesian product in fuzzy logic?
+It creates a fuzzy relation by taking the minimum membership value for every pair of elements.
+7. What is max-min composition?
+It is a method in which we first calculate minimum values and then select the maximum value.
+8. Which library is used in this program?
+NumPy is used for numerical calculations and matrix operations.
+9. Is an external dataset required?
+No. Fuzzy sets are directly defined in the program, so no external dataset is required.
+
