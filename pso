@@ -1,0 +1,174 @@
+import numpy as np
+# Imports NumPy for numerical calculations.
+
+import pandas as pd
+# Imports Pandas for loading and handling the dataset.
+
+from sklearn.preprocessing import StandardScaler
+# Imports StandardScaler to bring numerical values to a similar scale.
+
+# Load the Iris dataset
+data = pd.read_csv("Iris.csv")
+# Reads the Kaggle Iris CSV file.
+
+data = data.drop(columns=["Id", "Species"], errors="ignore")
+# Removes the ID and Species columns because clustering uses input features only.
+
+data = data.select_dtypes(include=np.number)
+# Selects only numerical columns.
+
+scaler = StandardScaler()
+# Creates an object for standardizing the data.
+
+X = scaler.fit_transform(data)
+# Scales all numerical features in the dataset.
+
+n_samples, n_features = X.shape
+# Gets the number of rows and columns in the dataset.
+
+k = 3
+# Defines the number of clusters as three.
+
+n_particles = 10
+# Defines the number of particles in the swarm.
+
+iterations = 50
+# Defines how many times PSO will update the particles.
+
+w = 0.7
+# Defines the inertia weight controlling previous velocity.
+
+c1 = 1.5
+# Defines the personal learning factor.
+
+c2 = 1.5
+# Defines the global learning factor.
+
+# Initialize particle positions
+particles = np.random.uniform(
+    X.min(), X.max(), (n_particles, k, n_features)
+)
+# Each particle represents three possible cluster centers.
+
+velocities = np.zeros_like(particles)
+# Initially sets all particle velocities to zero.
+
+pbest = particles.copy()
+# Stores the best position found by each particle.
+
+gbest = None
+# Stores the best position found by the entire swarm.
+
+pbest_scores = np.full(n_particles, float("inf"))
+# Initially sets all personal best scores to infinity.
+
+gbest_score = float("inf")
+# Initially sets the global best score to infinity.
+
+
+# Fitness function
+def fitness(centers):
+# Defines a function to evaluate the quality of cluster centers.
+
+    distances = np.linalg.norm(
+        X[:, np.newaxis, :] - centers[np.newaxis, :, :], axis=2
+    )
+    # Calculates the distance between every data point and every center.
+
+    labels = np.argmin(distances, axis=1)
+    # Assigns each data point to its nearest cluster center.
+
+    return np.sum(np.min(distances ** 2, axis=1))
+    # Returns the total squared distance within all clusters.
+
+
+# Particle Swarm Optimization
+for iteration in range(iterations):
+# Repeats the optimization process for 50 iterations.
+
+    for i in range(n_particles):
+    # Evaluates every particle in the swarm.
+
+        score = fitness(particles[i])
+        # Calculates the fitness score of the current particle.
+
+        if score < pbest_scores[i]:
+        # Checks whether the current position is better than its personal best.
+
+            pbest_scores[i] = score
+            # Updates the personal best fitness score.
+
+            pbest[i] = particles[i].copy()
+            # Saves the new personal best position.
+
+        if score < gbest_score:
+        # Checks whether the current position is the best overall.
+
+            gbest_score = score
+            # Updates the global best fitness score.
+
+            gbest = particles[i].copy()
+            # Saves the best cluster centers found so far.
+
+    r1 = np.random.rand(n_particles, k, n_features)
+    # Generates random values for personal learning.
+
+    r2 = np.random.rand(n_particles, k, n_features)
+    # Generates random values for global learning.
+
+    velocities = (
+        w * velocities
+        + c1 * r1 * (pbest - particles)
+        + c2 * r2 * (gbest - particles)
+    )
+    # Updates particle velocities using the PSO formula.
+
+    particles = particles + velocities
+    # Updates the positions of all particles.
+
+
+# Final clustering
+distances = np.linalg.norm(
+    X[:, np.newaxis, :] - gbest[np.newaxis, :, :], axis=2
+)
+# Calculates distances from data points to the best cluster centers.
+
+labels = np.argmin(distances, axis=1)
+# Assigns every data point to its nearest cluster.
+
+print("Data Clustering using PSO")
+# Displays the program title.
+
+print("Number of Clusters:", k)
+# Displays the total number of clusters.
+
+print("Cluster Centers:")
+# Displays the optimized cluster centers.
+
+print(gbest)
+# Prints the final cluster center coordinates.
+
+print("\nCluster Distribution:")
+# Displays the number of data points in each cluster.
+
+for i in range(k):
+# Goes through all three clusters.
+
+    print("Cluster", i + 1, ":", np.sum(labels == i), "data points")
+    # Counts and displays the data points in each cluster.
+
+print("\nBest Fitness Score:", round(gbest_score, 4))
+# Displays the final clustering fitness score.
+
+
+The aim of this program is to perform data clustering using Particle Swarm Optimization. I have used the Iris dataset from Kaggle, which contains information about different flower features. First, I loaded the dataset and performed preprocessing by removing unnecessary columns and standardizing the numerical values. Then I selected three clusters and initialized particles with random cluster centers. Each particle represents a possible clustering solution. The algorithm calculates the fitness score based on the distance between data points and their nearest cluster centers. It then updates the particles using personal best and global best values to find better solutions. This process continues for multiple iterations. Finally, the program displays the optimized cluster centers, the number of data points in each cluster, and the fitness score
+
+1. What is Particle Swarm Optimization?
+PSO is an optimization algorithm inspired by the movement and collective behaviour of birds or fish.
+2. What is data clustering?
+Data clustering is the process of grouping similar data points together.
+3. What is a particle in PSO?
+A particle represents one possible solution to the optimization problem.
+
+This program performs data clustering using Particle Swarm Optimization. For this practical, I have used the Iris dataset, which contains information about three types of flowers. First, I loaded the dataset and removed the ID and Species columns because clustering is performed without using predefined labels. Then I selected the numerical features and standardized them so that all features have a similar scale. I selected three clusters and initialized a group of particles, where each particle represents three possible cluster centers. The fitness function calculates the distance between data points and their nearest cluster centers. PSO uses three main concepts: personal best, global best, and velocity. Personal best stores the best solution found by an individual particle, while global best stores the best solution found by the entire group. The particles update their positions using the PSO formula and try to find better cluster centers. This process continues for 50 iterations. Finally, each data point is assigned to its nearest cluster center, and the program displays the cluster centers, number of data points in each cluster, and the best fitness score.
+
