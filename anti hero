@@ -1,0 +1,153 @@
+import numpy as np
+# Imports NumPy for mathematical and numerical operations.
+
+import random
+# Imports random for selecting cities and generating random choices.
+
+# Distance matrix representing distances between four cities
+distance = np.array([
+    [0, 10, 15, 20],
+    [10, 0, 35, 25],
+    [15, 35, 0, 30],
+    [20, 25, 30, 0]
+])
+# Each value represents the distance between two cities.
+
+num_cities = len(distance)
+# Calculates the total number of cities.
+
+num_ants = 4
+# Sets the number of ants participating in the search.
+
+iterations = 50
+# Sets the number of times the algorithm will run.
+
+alpha = 1
+# Controls the importance of pheromone trails.
+
+beta = 2
+# Controls the importance of distance between cities.
+
+evaporation = 0.5
+# Defines the pheromone evaporation rate.
+
+Q = 100
+# Defines the pheromone deposit constant.
+
+pheromone = np.ones((num_cities, num_cities))
+# Initially assigns equal pheromone values to all paths.
+
+best_route = None
+# Stores the best route found by the ants.
+
+best_distance = float('inf')
+# Initially sets the best distance to infinity.
+
+for iteration in range(iterations):
+# Repeats the algorithm for the specified number of iterations.
+
+    for ant in range(num_ants):
+    # Each ant independently searches for a route.
+
+        start = random.randint(0, num_cities - 1)
+        # Randomly selects the starting city.
+
+        route = [start]
+        # Stores the starting city in the route.
+
+        unvisited = list(range(num_cities))
+        # Creates a list of all cities.
+
+        unvisited.remove(start)
+        # Removes the starting city from unvisited cities.
+
+        while unvisited:
+        # Continues until every city has been visited.
+
+            current = route[-1]
+            # Gets the current city.
+
+            probabilities = []
+            # Stores the selection probability of each unvisited city.
+
+            for city in unvisited:
+            # Checks every unvisited city.
+
+                pheromone_value = pheromone[current][city] ** alpha
+                # Calculates the pheromone influence.
+
+                distance_value = (1 / distance[current][city]) ** beta
+                # Calculates the influence of the distance.
+
+                probabilities.append(pheromone_value * distance_value)
+                # Combines pheromone and distance information.
+
+            total = sum(probabilities)
+            # Calculates the total probability value.
+
+            probabilities = [p / total for p in probabilities]
+            # Converts values into selection probabilities.
+
+            next_city = random.choices(unvisited, weights=probabilities)[0]
+            # Selects the next city based on its probability.
+
+            route.append(next_city)
+            # Adds the selected city to the route.
+
+            unvisited.remove(next_city)
+            # Marks the selected city as visited.
+
+        route.append(start)
+        # Returns the ant to its starting city.
+
+        total_distance = sum(
+            distance[route[i]][route[i + 1]]
+            for i in range(len(route) - 1)
+        )
+        # Calculates the total distance of the complete route.
+
+        if total_distance < best_distance:
+        # Checks whether the current route is shorter.
+
+            best_distance = total_distance
+            # Updates the shortest distance.
+
+            best_route = route.copy()
+            # Saves the best route.
+
+    pheromone *= (1 - evaporation)
+    # Reduces pheromone values through evaporation.
+
+    for i in range(len(best_route) - 1):
+    # Goes through each path in the best route.
+
+        a = best_route[i]
+        # Gets the starting city of the path.
+
+        b = best_route[i + 1]
+        # Gets the destination city.
+
+        pheromone[a][b] += Q / best_distance
+        # Deposits pheromone on the best route.
+
+        pheromone[b][a] += Q / best_distance
+        # Updates pheromone in the reverse direction.
+
+print("Best Route:", best_route)
+# Displays the best route found.
+
+print("Shortest Distance:", best_distance)
+# Displays the shortest distance found.
+
+
+This program solves the Travelling Salesman Problem using Ant Colony Optimization. The problem is to visit every city exactly once and return to the starting city while covering the shortest possible distance. First, I created a distance matrix representing the distances between four cities. Then I initialized the number of ants, iterations, pheromone values, and other parameters. Each ant starts from a randomly selected city and chooses its next city based on two factors: pheromone strength and distance. Ants prefer paths with stronger pheromone trails and shorter distances. After visiting all cities, each ant returns to its starting city, and the total route distance is calculated. The algorithm compares the routes and stores the shortest one. Pheromone evaporation reduces the existing pheromone values, while additional pheromone is deposited on the best route. This process repeats for 50 iterations. Finally, the program displays the best route and its shortest distance
+
+The aim of this program is to solve the Travelling Salesman Problem using Ant Colony Optimization. ACO is an optimization technique inspired by the behaviour of real ants. In this program, we have four cities and their distances are stored in a distance matrix. Each ant starts from a random city and visits all the other cities before returning to its starting point. The ant selects its next city based on pheromone strength and distance. Shorter paths receive more pheromone, while existing pheromones gradually evaporate. This process is repeated for multiple iterations to find a shorter route. Finally, the program displays the best route and its total distance."
+
+What is Ant Colony Optimization?
+ACO is an optimization algorithm inspired by how ants find shorter paths using pheromone trails.
+2. What is the Travelling Salesman Problem?
+It is a problem where a salesman must visit every city once and return to the starting city with minimum distance.
+3. What is pheromone?
+Pheromone is a chemical substance released by ants to mark their paths. In ACO, it represents the attractiveness of a path.
+
